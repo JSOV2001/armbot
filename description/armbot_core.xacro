@@ -1,0 +1,285 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="inertia.xacro" />
+
+    <xacro:property name="PI" value="3.1416" />
+    <xacro:property name="effort" value="30" />
+    <xacro:property name="velocity" value="10" />
+
+    <xacro:property name="box_base" value="0.5" />
+    <xacro:property name="box_length" value="0.25" />
+
+    <xacro:property name="link_cylinder_radius" value="0.10" />
+    <xacro:property name="link_cylinder_length" value="0.75" />
+
+    <xacro:property name="joint_cylinder_radius" value="0.15" />
+    <xacro:property name="joint_cylinder_length" value="0.25" />
+
+    <xacro:property name="link_to_joint_distance" value="${joint_cylinder_radius + link_cylinder_length}" />
+    <xacro:property name="joint_to_link_distance" value="${joint_cylinder_radius}" />
+
+    <xacro:macro name="default_transmission" params="number">
+        <transmission name="transmission_${number}">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="joint_${number}">
+                <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="motor_${number}">
+                <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+    </xacro:macro>
+
+    <link name="world" />
+
+    <link name="base_link" />
+
+     <joint name="world_joint" type="fixed">
+        <parent link="world"/>
+        <child link="base_link"/>
+        <origin xyz="0.0 0.0 0.0" />
+        <axis xyz= "0 0 0" />
+    </joint>
+
+    <link name="base_footprint" >
+        <visual>
+            <origin xyz="0.0 0.0 ${box_length/2}"/>
+            <geometry>
+                <box size="${box_base} ${box_base} ${box_length}"/>
+            </geometry>
+            <material name="orange">
+                <color rgba="1 0.3 0.1 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 ${box_length}"/>
+            <geometry>
+                <box size="${box_base} ${box_base} ${box_length}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_box mass="1.25" x="${box_base}" y="${box_base}" z="${box_length}">
+            <origin xyz="0.0 0.0 ${box_length}" rpy="0 0 0"/>
+        </xacro:inertial_box>
+    </link>
+
+    <gazebo reference="base_footprint">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+
+    <joint name="base_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="base_footprint"/>
+        <origin xyz="0.0 0.0 0.0"/>
+        <axis xyz= "0 0 0" />
+    </joint>
+     
+    <link name="link_1" >
+        <visual>
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${joint_cylinder_radius}" length="${joint_cylinder_length}"/>
+            </geometry>
+            <material name="blue">
+                <color rgba="0 0 1 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${joint_cylinder_radius}"  length="${joint_cylinder_length}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass= "0.1" length= "${joint_cylinder_length}" radius="${joint_cylinder_radius}" >
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+        </xacro:inertial_cylinder>
+    </link>
+
+    <gazebo reference="link_1">
+        <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <joint name="joint_1" type="revolute">
+        <parent link="base_link"/>
+        <child link="link_1"/>
+        <origin xyz="0.0 0.0 ${box_length + joint_cylinder_radius}" />
+        <limit lower="-${PI/2}" upper="${PI/2}" effort="${effort}" velocity="${velocity}"/>
+        <axis xyz= "0 1 0" />
+        <dynamics friction="1.5" damping="1.5" />
+    </joint>
+    
+    <link name="link_1_fixed_part" >
+        <visual>
+            <origin xyz="0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${link_cylinder_radius}" length="${link_cylinder_length}"/>
+            </geometry>
+            <material name="blue">
+                <color rgba="0 0 1 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="${link_cylinder_radius}" length="${link_cylinder_length}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass= "0.25" length= "${link_cylinder_length}" radius="${link_cylinder_radius}" >
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0"/>
+        </xacro:inertial_cylinder>
+    </link>
+
+    <gazebo reference="link_1_fixed_part">
+        <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <joint name="link_1_fixed_joint" type="fixed">
+        <parent link="link_1"/>
+        <child link="link_1_fixed_part"/>
+        <origin xyz="0.0 0.0 ${joint_to_link_distance}" />
+        <axis xyz= "0 0 0" />
+        <dynamics friction="1.5" damping="1.5" />
+    </joint>
+
+    <link name="link_2" >
+        <visual>
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${joint_cylinder_radius}" length="${joint_cylinder_length}"/>
+            </geometry>
+            <material name="red">
+                <color rgba="1 0 0 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${joint_cylinder_radius}"  length="${joint_cylinder_length}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass= "0.1" length= "${joint_cylinder_length}" radius="${joint_cylinder_radius}" >
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+        </xacro:inertial_cylinder>
+     </link>
+
+    <gazebo reference="link_2">
+        <material>Gazebo/Red</material>
+    </gazebo>
+
+    <joint name="joint_2" type="revolute">
+        <parent link="link_1_fixed_part"/>
+        <child link="link_2"/>
+        <origin xyz="0.0 0.0 ${link_to_joint_distance}" />
+        <axis xyz="0 1 0"/>
+        <limit lower="-${PI/2}" upper="${PI/2}" effort="${effort}" velocity="${velocity}"/>
+        <axis xyz= "0 1 0" />
+        <dynamics friction="1.5" damping="1.5" />
+    </joint>
+
+    <link name="link_2_fixed_part" >
+        <visual>
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${link_cylinder_radius}" length="${link_cylinder_length}"/>
+            </geometry>
+            <material name="red">
+                <color rgba="1 0 0 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${link_cylinder_radius}" length="${link_cylinder_length}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass= "0.25" length= "${link_cylinder_length}" radius="${link_cylinder_radius}" >
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0" />
+        </xacro:inertial_cylinder>
+    </link>
+
+    <gazebo reference="link_2_fixed_part">
+        <material>Gazebo/Red</material>
+    </gazebo>
+
+    <joint name="link_2_fixed_joint" type="fixed">
+        <parent link="link_2"/>
+        <child link="link_2_fixed_part"/>
+        <origin xyz="0.0 0.0 ${joint_to_link_distance}" />
+        <axis xyz= "0 0 0" />
+        <dynamics friction="1.5" damping="1.5" />
+    </joint>
+
+    <link name="link_3" >
+        <visual>
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${joint_cylinder_radius}" length="${joint_cylinder_length}"/>
+            </geometry>
+            <material name="green">
+                <color rgba="0 1 0 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${joint_cylinder_radius}"  length="${joint_cylinder_length}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass= "0.1" length= "${joint_cylinder_length}" radius="${joint_cylinder_radius}" >
+            <origin xyz= "0.0 0.0 0.0" rpy= "${PI/2} 0.0 0.0"/>
+        </xacro:inertial_cylinder>
+    </link>
+
+    <gazebo reference="link_3">
+        <material>Gazebo/Green</material>
+    </gazebo>
+
+    <joint name="joint_3" type="revolute">
+        <parent link="link_2_fixed_part"/>
+        <child link="link_3"/>
+        <origin xyz="0.0 0.0 ${link_to_joint_distance}" />
+        <axis xyz="0 1 0"/>
+        <limit lower="-${PI/2}" upper="${PI/2}" effort="${effort}" velocity="${velocity}"/>
+        <axis xyz= "0 1 0" />
+        <dynamics friction="1.5" damping="1.5" />
+    </joint>
+
+    <link name="link_3_fixed_part" >
+        <visual>
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${link_cylinder_radius}" length="${link_cylinder_length}"/>
+            </geometry>
+            <material name="green">
+                <color rgba="0 1 0 1"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${link_cylinder_radius}" length="${link_cylinder_length}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass= "0.25" length= "${link_cylinder_length}" radius="${link_cylinder_radius}" >
+            <origin xyz= "0.0 0.0 ${link_cylinder_length/2}" rpy="0 0 0" />
+        </xacro:inertial_cylinder>
+    </link>
+
+    <gazebo reference="link_3_fixed_part">
+        <material>Gazebo/Green</material>
+    </gazebo>
+
+    <joint name="link_3_fixed_joint" type="fixed">
+        <parent link="link_3"/>
+        <child link="link_3_fixed_part"/>
+        <origin xyz="0.0 0.0 ${joint_to_link_distance}" />
+        <axis xyz= "0 0 0" />
+        <dynamics friction="1.5" damping="1.5" />
+    </joint>
+
+    <!-- Transmisiones de Cada Actuador con su Respectivo Joint -->
+    
+    <xacro:default_transmission number="1"/>
+    <xacro:default_transmission number="2"/>
+    <xacro:default_transmission number="3"/>
+</robot>

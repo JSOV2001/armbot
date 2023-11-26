@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+    <!-- Armbot's specified controller -->
+    <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <robotNamespace>armbot</robotNamespace>
+            <parameters>$(find armbot)/config/joint_group_position_controller.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <!-- Necessary hardware interface for controller -->
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+
+        <joint name="joint_1">
+            <command_interface name="position">
+                <param name="min">-1.5708</param>
+                <param name="max">1.5708</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <param name="initial_position">0.0</param>  
+            </joint>
+            
+        <joint name="joint_2">
+            <command_interface name="position">
+                <param name="min">-1.5708</param>
+                <param name="max">1.5708</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <param name="initial_position">0.0</param>  
+        </joint>
+
+        <joint name="joint_3">
+            <command_interface name="position">
+                <param name="min">-1.5708</param>
+                <param name="max">1.5708</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <param name="initial_position">0.0</param>  
+        </joint>
+    </ros2_control>
+</robot >
